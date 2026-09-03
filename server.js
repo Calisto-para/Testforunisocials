@@ -295,9 +295,17 @@ async function migrateInfluencerReferralLinks() {
     const influencer = users.find(u => String(u.id || '') === influencerId && u.role === 'influencer');
     if (!influencer) continue;
     const accepted = getAcceptedInfluencerAssignments(influencer);
-    if (accepted.length === 1) {
-      link.assignmentId = accepted[0].id;
-      link.influencerAdminId = accepted[0].influencerAdminId;
+    const originalAdminId = String(
+      link.influencerAdminId || influencer.assignedInfluencerAdminId || influencer.influencerAdminId ||
+      influencer.ownerInfluencerAdminId ||
+      (typeof influencer.createdBy === 'string' ? influencer.createdBy : (influencer.createdBy && influencer.createdBy.id)) || ''
+    ).trim();
+    const originalAssignment = accepted.find(a => String(a.influencerAdminId || '').trim() === originalAdminId) ||
+      (accepted.length === 1 ? accepted[0] : null);
+    if (originalAssignment) {
+      link.assignmentId = originalAssignment.id;
+      link.influencerAdminId = originalAssignment.influencerAdminId;
+      link.legacyScoped = true;
       if (!link.ownerRole || link.ownerRole === 'subadmin') link.ownerRole = 'influencer';
       link.subadminId = null;
       link.subadminName = null;
@@ -485,8 +493,9 @@ async function getReferralLinksByInfluencerId(influencerId) {
 }
 async function getReferralLinkForAssignment(influencerId, assignmentId) {
   const links = await getReferralLinksByInfluencerId(influencerId);
-  return links.find(l => String(l.assignmentId || '') === String(assignmentId || '')) ||
-    links.find(l => !l.assignmentId) || links[0] || null;
+  const exact = links.find(l => String(l.assignmentId || '') === String(assignmentId || ''));
+  if (exact) return exact;
+  return links.find(l => !l.assignmentId && l.legacyScoped !== true) || links[0] || null;
 }
 function canonicalReferralUrl(code) {
   const safeCode = String(code || '').trim().toUpperCase();
@@ -501,8 +510,11 @@ async function generateReferralLink(ownerId, ownerName, ownerEmail, ownerRole = 
   const links = await readReferralLinks();
   // Sub-admins keep one stable global referral record. Influencers may have
   // one shared record across all accepted Influencer Admin relationships.
-  const existing = ownerRole === 'influencer'
-    ? links.find(l => String(l.influencerId || l.ownerId || '') === String(ownerId))
+  const existing = ownerRole === 'influencer' && assignmentId
+    ? links.find(l => String(l.influencerId || l.ownerId || '') === String(ownerId) &&
+      (String(l.assignmentId || '') === String(assignmentId) || l.legacyScoped !== true))
+    : ownerRole === 'influencer'
+      ? links.find(l => String(l.influencerId || l.ownerId || '') === String(ownerId) && l.legacyScoped !== true)
     : links.find(l => l.ownerId === ownerId || l.subadminId === ownerId || (ownerRole === 'influencer' && l.influencerId === ownerId && !l.assignmentId));
   if (existing) return existing;
 
@@ -560,6 +572,13 @@ async function influencerReferralAuthorizedForEvent(referralLink, event) {
   // not enough: a relationship may have been rejected after the link was
   // created, and that must immediately revoke the referral code.
   const authorizedIds = new Set(getAuthorizedInfluencerAdminIds(event));
+  if (referralLink.legacyScoped === true && referralLink.influencerAdminId) {
+    const assignment = getAcceptedInfluencerAssignments(influencer).find(a =>
+      String(a.id || '') === String(referralLink.assignmentId || '')
+    );
+    const adminId = String(assignment ? assignment.influencerAdminId : referralLink.influencerAdminId).trim();
+    return !!adminId && authorizedIds.has(adminId);
+  }
   // A shared influencer code is valid when any accepted admin relationship for
   // that influencer is authorized for the selected event.
   return getAcceptedInfluencerAssignments(influencer).some(assignment => {
@@ -582,6 +601,7 @@ async function getScopedReferralOrders(referralLink, orders, events, scopedAdmin
 
   let ownerAdminId = String(scopedAdminId || '').trim();
   if (!ownerAdminId) ownerAdminId = String(referralLink.influencerAdminId || '').trim();
+  if (referralLink.legacyScoped === true && referralLink.influencerAdminId && ownerAdminId !== String(referralLink.influencerAdminId).trim()) return [];
   if (!ownerAdminId) return verifiedOrders;
 
   return verifiedOrders.filter(order => {
