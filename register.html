@@ -1,18 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-  <link rel="icon" type="image/png" sizes="32x32" href="/images/unisocials-favicon-32.png" />
-  <link rel="icon" type="image/png" sizes="192x192" href="/images/unisocials-favicon-192.png" />
-  <link rel="apple-touch-icon" sizes="180x180" href="/images/unisocials-favicon-180.png" />
-
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Create Account — Unisocials</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300&family=Playfair+Display:ital,wght@0,700;1,600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="templatemo-622-clearwave.css?v=step4" />
+  <link rel="stylesheet" href="templatemo-622-clearwave.css" />
   <style>
     .auth-section { padding: 56px 0 80px; }
     .auth-card {
@@ -105,15 +100,15 @@
           </div>
           <div class="form-group">
             <label for="regEmail">Email Address</label>
-<input type="email" id="regEmail" placeholder="you@university.edu.ng" autocomplete="email" maxlength="254" required />
+<input type="email" id="regEmail" placeholder="you@university.edu.ng" autocomplete="email" required />
           </div>
           <div class="form-group">
             <label for="regPhone">Phone Number</label>
-            <input type="tel" id="regPhone" placeholder="0812 345 6789" autocomplete="tel" maxlength="25" pattern="(?:0[789][01][0-9]{8}|\+234[789][01][0-9]{8})" required />
+            <input type="tel" id="regPhone" placeholder="0812 345 6789" autocomplete="tel" required />
           </div>
           <div class="form-group">
             <label for="regPassword">Password</label>
-            <input type="password" id="regPassword" placeholder="8+ chars, letter, number & symbol" autocomplete="new-password" minlength="8" required />
+            <input type="password" id="regPassword" placeholder="At least 6 characters" autocomplete="new-password" minlength="6" required />
           </div>
           <button type="submit" class="btn-submit" id="regBtn">Create Account</button>
         </form>
@@ -188,9 +183,8 @@
         errBox.classList.add('show');
         return;
       }
-      var emailOk = /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$/.test(email);
-      if (!emailOk || email.length > 254) {
-        errBox.textContent = 'Please enter a valid email address.';
+      if (password.length < 6) {
+        errBox.textContent = 'Password must be at least 6 characters.';
         errBox.classList.add('show');
         return;
       }
@@ -224,7 +218,6 @@
       });
     };
   </script>
-  <script src="nav-mobile-fix.js?v=step5"></script>
 </body>
 </html>
 

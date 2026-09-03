@@ -341,7 +341,7 @@ Free for personal and commercial use
 
     /* Mobile Menu */
     .mobile-menu {
-      position: fixed; inset: 0; z-index: 1100;
+      position: fixed; inset: 0; z-index: 999;
       background: var(--bg);
       display: flex; flex-direction: column; align-items: center;
       justify-content: center;
@@ -2106,8 +2106,7 @@ Free for personal and commercial use
     /* ══════════════════════════════════════════
        SCROLL REVEAL
     ══════════════════════════════════════════ */
-    /* Safe rendering: page content is visible even if the reveal animation script cannot run. */
-    .reveal { opacity: 1; transform: none; transition: opacity 0.7s var(--silk), transform 0.7s var(--silk); }
+    .reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.7s var(--silk), transform 0.7s var(--silk); }
     .reveal.visible { opacity: 1; transform: none; }
     .reveal-delay-1 { transition-delay: 0.1s; }
     .reveal-delay-2 { transition-delay: 0.2s; }
