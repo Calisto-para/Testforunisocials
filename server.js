@@ -567,9 +567,10 @@ async function influencerReferralAuthorizedForEvent(referralLink, event) {
     if (ownerAdminId && ownerAdminId !== assignmentAdminId) return false;
     ownerAdminId = assignmentAdminId;
   }
-  // Legacy influencer links without a relationship keep their old global
-  // behavior for backwards compatibility.
-  if (!ownerAdminId) return true;
+  // An influencer code without a relationship owner is ambiguous and must not
+  // become a global discount code. New influencer accounts always have this
+  // relationship; rejecting old ambiguous records prevents authorization bypass.
+  if (!ownerAdminId) return false;
 
   const authorized = getAuthorizedInfluencerAdminIds(event).includes(ownerAdminId);
   if (authorized) return true;
@@ -665,6 +666,12 @@ async function readEvents() {
 function getAuthorizedInfluencerAdminIds(ev) {
   const ids = Array.isArray(ev && ev.authorizedInfluencerAdminIds) ? ev.authorizedInfluencerAdminIds : [];
   return ids.map(String).filter(Boolean);
+}
+
+function eventIdentifierMatches(event, eventId) {
+  const requestedId = String(eventId || '').trim();
+  if (!requestedId || !event) return false;
+  return [event.id, event._id, event.eventId].some(id => String(id || '').trim() === requestedId);
 }
 
 function eventMatchesOrder(order, ev) {
@@ -2794,7 +2801,7 @@ function getTierInventory(event, tier, orders) {
       // to manage.
       if (eventId) {
         const eventCatalog = await readEvents();
-        eventRecord = eventCatalog.find(e => String(e.id) === eventId);
+        eventRecord = eventCatalog.find(e => eventIdentifierMatches(e, eventId));
         if (!eventRecord) return sendJson(res, 400, { success: false, error: 'Event not found' });
       }
 
@@ -2806,7 +2813,7 @@ function getTierInventory(event, tier, orders) {
         // A relationship-specific referral code must always be evaluated
         // against a real event. Never allow a caller to omit eventId and
         // bypass event authorization.
-        if (referralLink.assignmentId && !eventRecord) {
+        if (referralLink.influencerId && !eventRecord) {
           return sendJson(res, 400, { success: false, error: 'An event is required when using this referral code.' });
         }
         if (eventRecord && !(await influencerReferralAuthorizedForEvent(referralLink, eventRecord))) {
