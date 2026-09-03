@@ -485,7 +485,8 @@ async function getReferralLinksByInfluencerId(influencerId) {
 }
 async function getReferralLinkForAssignment(influencerId, assignmentId) {
   const links = await getReferralLinksByInfluencerId(influencerId);
-  return links.find(l => String(l.assignmentId || '') === String(assignmentId || '')) || null;
+  return links.find(l => String(l.assignmentId || '') === String(assignmentId || '')) ||
+    links.find(l => !l.assignmentId) || links[0] || null;
 }
 function canonicalReferralUrl(code) {
   const safeCode = String(code || '').trim().toUpperCase();
@@ -499,9 +500,9 @@ function referralLinkResponse(link) {
 async function generateReferralLink(ownerId, ownerName, ownerEmail, ownerRole = 'subadmin', assignmentId = null, influencerAdminId = null) {
   const links = await readReferralLinks();
   // Sub-admins keep one stable global referral record. Influencers may have
-  // multiple records, one per accepted Influencer Admin relationship.
-  const existing = ownerRole === 'influencer' && assignmentId
-    ? links.find(l => String(l.influencerId || l.ownerId || '') === String(ownerId) && String(l.assignmentId || '') === String(assignmentId))
+  // one shared record across all accepted Influencer Admin relationships.
+  const existing = ownerRole === 'influencer'
+    ? links.find(l => String(l.influencerId || l.ownerId || '') === String(ownerId))
     : links.find(l => l.ownerId === ownerId || l.subadminId === ownerId || (ownerRole === 'influencer' && l.influencerId === ownerId && !l.assignmentId));
   if (existing) return existing;
 
@@ -558,27 +559,16 @@ async function influencerReferralAuthorizedForEvent(referralLink, event) {
   // accepted relationship. Merely having influencerAdminId on the link is
   // not enough: a relationship may have been rejected after the link was
   // created, and that must immediately revoke the referral code.
-  let ownerAdminId = String(referralLink.influencerAdminId || '').trim();
-  if (referralLink.assignmentId) {
-    const assignment = getAcceptedInfluencerAssignments(influencer).find(a => a.id === String(referralLink.assignmentId));
-    if (!assignment) return false;
-    const assignmentAdminId = String(assignment.influencerAdminId || '').trim();
-    if (!assignmentAdminId) return false;
-    if (ownerAdminId && ownerAdminId !== assignmentAdminId) return false;
-    ownerAdminId = assignmentAdminId;
-  }
-  // An influencer code without a relationship owner is ambiguous and must not
-  // become a global discount code. New influencer accounts always have this
-  // relationship; rejecting old ambiguous records prevents authorization bypass.
-  if (!ownerAdminId) return false;
-
-  // Referral codes are limited to events explicitly authorized to the parent
-  // Influencer Admin. Owning or creating an event is not authorization to use
-  // another account's influencer referral code on it.
-  return getAuthorizedInfluencerAdminIds(event).includes(ownerAdminId);
+  const authorizedIds = new Set(getAuthorizedInfluencerAdminIds(event));
+  // A shared influencer code is valid when any accepted admin relationship for
+  // that influencer is authorized for the selected event.
+  return getAcceptedInfluencerAssignments(influencer).some(assignment => {
+    const adminId = String(assignment.influencerAdminId || '').trim();
+    return !!adminId && authorizedIds.has(adminId);
+  });
 }
 
-async function getScopedReferralOrders(referralLink, orders, events) {
+async function getScopedReferralOrders(referralLink, orders, events, scopedAdminId = null) {
   if (!referralLink) return [];
   const verifiedOrders = orders.filter(o => isReferralOrderCounted(o, referralLink.code));
 
@@ -590,15 +580,8 @@ async function getScopedReferralOrders(referralLink, orders, events) {
   const influencer = users.find(u => String(u.id || '').trim() === influencerId && u.role === 'influencer');
   if (!influencer) return [];
 
-  let ownerAdminId = String(referralLink.influencerAdminId || '').trim();
-  if (referralLink.assignmentId) {
-    const assignment = getAcceptedInfluencerAssignments(influencer).find(a => a.id === String(referralLink.assignmentId));
-    if (!assignment) return [];
-    const assignmentAdminId = String(assignment.influencerAdminId || '').trim();
-    if (!assignmentAdminId) return [];
-    if (ownerAdminId && ownerAdminId !== assignmentAdminId) return [];
-    ownerAdminId = assignmentAdminId;
-  }
+  let ownerAdminId = String(scopedAdminId || '').trim();
+  if (!ownerAdminId) ownerAdminId = String(referralLink.influencerAdminId || '').trim();
   if (!ownerAdminId) return verifiedOrders;
 
   return verifiedOrders.filter(order => {
@@ -2264,11 +2247,8 @@ const user = {
             .find(a => String(a.influencerAdminId || '').trim() === adminId) || null;
           if (!assignment) return null;
 
-          const link = links.find(l =>
-            String(l.influencerId || l.ownerId || '').trim() === String(influencer.id) &&
-            String(l.assignmentId || '').trim() === String(assignment.id)
-          ) || null;
-          const referredOrders = link ? await getScopedReferralOrders(link, orders, events) : [];
+          const link = links.find(l => String(l.influencerId || l.ownerId || '').trim() === String(influencer.id)) || null;
+          const referredOrders = link ? await getScopedReferralOrders(link, orders, events, adminId) : [];
           const totalRevenue = referredOrders.reduce((sum, o) => sum + (Number(o.amount) || 0), 0);
           const totalTickets = referredOrders.reduce((sum, o) => sum + (parseInt(o.qty, 10) || 0), 0);
           return {
@@ -3273,7 +3253,7 @@ codes[idx] = entry;
       let links = await getReferralLinksByInfluencerId(user.id);
       const portals = [];
       for (const assignment of assignments) {
-        let link = links.find(l => String(l.assignmentId || '') === String(assignment.id)) || null;
+        let link = links.find(l => String(l.influencerId || l.ownerId || '') === String(user.id)) || null;
         if (!link) {
           link = await generateReferralLink(user.id, user.name, user.email, 'influencer', assignment.id, assignment.influencerAdminId);
           links.push(link);
@@ -3368,7 +3348,7 @@ codes[idx] = entry;
         for (const assignment of acceptedAssignments) {
           const link = await getReferralLinkForAssignment(user.id, assignment.id);
           if (!link) continue;
-          const scoped = await getScopedReferralOrders(link, orders, events);
+          const scoped = await getScopedReferralOrders(link, orders, events, assignment.influencerAdminId);
           const admin = admins.find(a => String(a.id || '') === String(assignment.influencerAdminId || '') && ['influencer_admin','influencer-admin','influencerAdmin'].includes(String(a.role)));
           const eventRows = buildEventBreakdown(scoped, assignment.influencerAdminId);
           const adminStats = {
@@ -3410,7 +3390,7 @@ codes[idx] = entry;
       if (assignmentId && !assignment) return sendJson(res, 403, { success: false, error: 'You are not assigned to this referral portal.' });
       let link = assignment ? await getReferralLinkForAssignment(user.id, assignment.id) : await getReferralLinkByInfluencerId(user.id);
       if (!link) return sendJson(res, 200, { success: true, stats: { totalOrders: 0, totalRevenue: 0, totalTickets: 0, uniquePeople: 0, link: null } });
-      const referredOrders = await getScopedReferralOrders(link, orders, events);
+      const referredOrders = await getScopedReferralOrders(link, orders, events, assignment ? assignment.influencerAdminId : null);
       const uniquePeople = new Set(referredOrders.map(o => String(o.buyerEmail || '').trim().toLowerCase()).filter(Boolean)).size;
       const totalRevenue = referredOrders.reduce((sum, o) => sum + (Number(o.amount) || 0), 0);
       const totalCommission = referredOrders.reduce((sum, o) => sum + commissionForOrder(o), 0);
