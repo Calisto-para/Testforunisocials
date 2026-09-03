@@ -1980,7 +1980,7 @@ const server = http.createServer(async (req, res) => {
     // Lightweight health/keep-alive endpoint.
     // Deliberately performs no database queries or external API calls so periodic
     // uptime checks keep the web service warm without consuming Neon compute.
-    if (pathname === '/api/health' && (req.method === 'GET' || req.method === 'HEAD')) {
+    if ((pathname === '/api/health' || pathname === '/healthz') && (req.method === 'GET' || req.method === 'HEAD')) {
       res.writeHead(200, withSecurityHeaders({
         'Content-Type': 'application/json; charset=utf-8',
         'Cache-Control': 'no-store, no-cache, must-revalidate'

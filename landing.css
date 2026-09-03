@@ -13,7 +13,10 @@
   visibility: visible;
   transition: opacity .7s cubic-bezier(.16,1,.3,1), visibility .7s;
   overflow: hidden;
+  /* Safety fallback: the intro must disappear even if JavaScript fails to load. */
+  animation: unIntroAutoHide 5.8s forwards;
 }
+
 #unisocials-intro.is-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 #unisocials-intro::before,
 #unisocials-intro::after {
@@ -60,6 +63,10 @@
 .un-intro-dots { position:absolute; inset:0; pointer-events:none; opacity:.5; }
 .un-intro-dots i { position:absolute; width:5px; height:5px; border-radius:50%; background:#66bb6a; animation:unIntroPulse 2.2s ease-in-out infinite; }
 .un-intro-dots i:nth-child(1){left:13%;top:27%;animation-delay:.2s}.un-intro-dots i:nth-child(2){left:84%;top:21%;animation-delay:.7s}.un-intro-dots i:nth-child(3){left:88%;top:68%;animation-delay:1.1s}.un-intro-dots i:nth-child(4){left:9%;top:76%;animation-delay:1.5s}.un-intro-dots i:nth-child(5){left:23%;top:83%;animation-delay:1.9s}.un-intro-dots i:nth-child(6){left:75%;top:82%;animation-delay:.9s}
+@keyframes unIntroAutoHide {
+  0%, 78% { opacity: 1; visibility: visible; }
+  100% { opacity: 0; visibility: hidden; }
+}
 @keyframes unIntroProgress { from{width:0} to{width:100%} }
 @keyframes unIntroFloat { 0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)} }
 @keyframes unIntroOrbit { from{transform:rotate(0deg) scale(1)} to{transform:rotate(360deg) scale(1.03)} }
