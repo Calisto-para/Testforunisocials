@@ -572,10 +572,10 @@ async function influencerReferralAuthorizedForEvent(referralLink, event) {
   // relationship; rejecting old ambiguous records prevents authorization bypass.
   if (!ownerAdminId) return false;
 
-  const authorized = getAuthorizedInfluencerAdminIds(event).includes(ownerAdminId);
-  if (authorized) return true;
-  const ownerCtx = { role: 'influencer_admin', user: { id: ownerAdminId } };
-  return influencerAdminOwnsEvent(ownerCtx, event);
+  // Referral codes are limited to events explicitly authorized to the parent
+  // Influencer Admin. Owning or creating an event is not authorization to use
+  // another account's influencer referral code on it.
+  return getAuthorizedInfluencerAdminIds(event).includes(ownerAdminId);
 }
 
 async function getScopedReferralOrders(referralLink, orders, events) {
@@ -604,8 +604,7 @@ async function getScopedReferralOrders(referralLink, orders, events) {
   return verifiedOrders.filter(order => {
     const event = events.find(ev => eventMatchesOrder(order, ev));
     if (!event) return false;
-    return getAuthorizedInfluencerAdminIds(event).includes(ownerAdminId) ||
-      influencerAdminOwnsEvent({ role: 'influencer_admin', user: { id: ownerAdminId } }, event);
+    return getAuthorizedInfluencerAdminIds(event).includes(ownerAdminId);
   });
 }
 
