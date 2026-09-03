@@ -681,6 +681,18 @@
   #panel-events { display:none; }
   #panel-event-sales { display:none; }
   #panel-events.active, #panel-event-sales.active, #panel-overview.active, #panel-influencers.active { display:block; }
+  .influencer-section-heading { display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:12px; }
+  .influencer-section-heading strong { color:var(--text-1); font-size:.92rem; }
+  .influencer-section-heading div div { color:var(--text-3); font-size:.76rem; margin-top:3px; }
+  .influencer-existing-panel { margin-top:14px; }
+  .influencer-search-toolbar { display:flex; gap:8px; align-items:center; }
+  .influencer-search-toolbar input { flex:1 1 auto; min-width:0; }
+  .influencer-search-toolbar button { flex:0 0 auto; white-space:nowrap; }
+  .influencer-search-results:empty { display:none; }
+  .influencer-search-result { display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap; padding:11px 0; border-bottom:1px solid var(--border); }
+  .influencer-search-result:last-child { border-bottom:0; }
+  .influencer-search-result-action { flex:0 0 auto; }
+  .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
 </style>
 
 <style id="influencer-admin-mobile-tight">
@@ -747,6 +759,11 @@
     .admin-ticket-codes { overflow-x: auto; }
 
     .admin-toast { max-width: calc(100vw - 24px); padding: 10px 14px; border-radius: 12px; font-size: .78rem; }
+    .influencer-search-toolbar { align-items:stretch; flex-wrap:wrap; }
+    .influencer-search-toolbar input { flex:1 1 100%; }
+    .influencer-search-toolbar button { flex:1 1 0; }
+    .influencer-search-result-action { width:100%; }
+    .influencer-search-result-action .admin-refresh-btn { width:100%; }
   }
 
   @media (max-width: 380px) {
@@ -928,17 +945,10 @@
       <p>Create and manage the influencers you created. They receive their own login and referral link, and their sales remain associated with your Influencer Admin account.</p>
     </div>
   </div>
-  <div class="admin-scan-panel" style="margin-bottom:14px;">
-    <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px;">
-      <div><strong>Request an existing influencer</strong><div style="font-size:.78rem;color:var(--text-3);margin-top:3px;">Search by name or login email. This never creates a duplicate account.</div></div>
-    </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-      <input id="existingInfluencerSearch" type="search" placeholder="Search influencer name or email" autocomplete="off" style="flex:1;min-width:220px;" />
-      <button class="btn-submit" type="button" onclick="searchExistingInfluencers()">🔎 Search</button>
-    </div>
-    <div id="existingInfluencerResults" style="margin-top:12px;"></div>
-  </div>
   <div class="admin-scan-panel">
+    <div class="influencer-section-heading">
+      <div><strong>Create an influencer</strong><div>Give them a login and a referral link for your events.</div></div>
+    </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:14px;">
       <div class="form-group"><label for="infName">Full Name</label><input type="text" id="infName" placeholder="e.g. John Influencer" autocomplete="name" /></div>
       <div class="form-group"><label for="infEmail">Login Email</label><input type="email" id="infEmail" placeholder="influencer@example.com" autocomplete="email" /></div>
@@ -950,6 +960,18 @@
       <span style="font-size:0.75rem;color:var(--text-3);align-self:center;" id="influencerCount"></span>
     </div>
     <div class="admin-ticket-codes" id="influencersList" style="margin-top:14px;"></div>
+  </div>
+  <div class="admin-scan-panel influencer-existing-panel">
+    <div class="influencer-section-heading">
+      <div><strong>Work with an existing influencer</strong><div>Search by name or login email to send a connection request.</div></div>
+    </div>
+    <div class="influencer-search-toolbar">
+      <label class="sr-only" for="existingInfluencerSearch">Search existing influencers</label>
+      <input id="existingInfluencerSearch" type="search" placeholder="Name or email" autocomplete="off" />
+      <button class="admin-refresh-btn" type="button" onclick="searchExistingInfluencers()">🔎 Search</button>
+      <button class="admin-refresh-btn influencer-search-clear" type="button" onclick="clearExistingInfluencerSearch()" aria-label="Clear influencer search">Clear</button>
+    </div>
+    <div id="existingInfluencerResults" class="influencer-search-results"></div>
   </div>
 </div>
 
@@ -1855,14 +1877,27 @@ fetch('/api/admin/events/notify', {
             box.innerHTML = list.map(function(u){
               var status = String(u.assignmentStatus || 'none');
               var action = '';
-              if (status === 'accepted') action = '<span style="font-size:.75rem;font-weight:700;color:#2E7D32;">✓ Already working with you</span>';
-              else if (status === 'pending') action = '<span style="font-size:.75rem;font-weight:700;color:#B26A00;">⏳ Request pending</span>';
-              else action = '<button class="admin-refresh-btn" type="button" onclick="requestExistingInfluencer(\'' + esc(u.id) + '\')">Request influencer</button>';
-              return '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--border);">' +
+              if (status === 'accepted') action = '<span class="influencer-search-result-action" style="font-size:.75rem;font-weight:700;color:#2E7D32;">✓ Already working with you</span>';
+              else if (status === 'pending') action = '<span class="influencer-search-result-action" style="font-size:.75rem;font-weight:700;color:#B26A00;">⏳ Request pending</span>';
+              else action = '<span class="influencer-search-result-action"><button class="admin-refresh-btn" type="button" onclick="requestExistingInfluencer(\'' + esc(u.id) + '\')">Request influencer</button></span>';
+              return '<div class="influencer-search-result">' +
                 '<div><strong>' + esc(u.name || '—') + '</strong><div style="font-size:.75rem;color:var(--text-3);">' + esc(u.email || '') + '</div></div>' + action + '</div>';
             }).join('');
           }).catch(function(e){ if (box) box.innerHTML = '<div style="color:#B71C1C;font-size:.82rem;padding:8px 0;">' + esc(e.message || 'Search failed') + '</div>'; });
       };
+
+      window.clearExistingInfluencerSearch = function() {
+        var input = document.getElementById('existingInfluencerSearch');
+        var box = document.getElementById('existingInfluencerResults');
+        if (input) input.value = '';
+        if (box) box.innerHTML = '';
+        if (input) input.focus();
+      };
+
+      var existingInfluencerSearchInput = document.getElementById('existingInfluencerSearch');
+      if (existingInfluencerSearchInput) existingInfluencerSearchInput.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') { event.preventDefault(); searchExistingInfluencers(); }
+      });
 
       window.requestExistingInfluencer = function(influencerId) {
         if (!influencerId) return;
