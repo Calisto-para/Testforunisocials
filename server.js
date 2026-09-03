@@ -18,7 +18,6 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const zlib = require('zlib');
 
 // ── Load local .env (if present) so local dev uses the same secrets as Render.
 // Never commit .env — it holds live API keys (gitignored).
@@ -4213,36 +4212,14 @@ const events = await readEvents();
             return;
           }
           const ext = path.extname(indexPath).toLowerCase();
-          const contentType = MIME_TYPES[ext] || 'application/octet-stream';
-          const cacheControl = ext === '.html' ? 'no-cache, max-age=0, must-revalidate' : 'public, max-age=3600';
-          const headers = withSecurityHeaders({ 'Content-Type': contentType, 'Cache-Control': cacheControl }, req);
-          const acceptsGzip = /\bgzip\b/i.test(String(req.headers['accept-encoding'] || ''));
-          if (acceptsGzip && ['.html', '.css', '.js', '.json', '.svg', '.txt'].includes(ext)) {
-            headers['Content-Encoding'] = 'gzip';
-            headers['Vary'] = 'Accept-Encoding';
-            res.writeHead(200, headers);
-            fs.createReadStream(indexPath).pipe(zlib.createGzip({ level: 6 })).pipe(res);
-          } else {
-            res.writeHead(200, headers);
-            fs.createReadStream(indexPath).pipe(res);
-          }
+          res.writeHead(200, { 'Content-Type': MIME_TYPES[ext] || 'application/octet-stream' });
+          fs.createReadStream(indexPath).pipe(res);
         });
         return;
       }
       const ext = path.extname(filePath).toLowerCase();
-      const contentType = MIME_TYPES[ext] || 'application/octet-stream';
-      const cacheControl = ext === '.html' ? 'no-cache, max-age=0, must-revalidate' : 'public, max-age=3600';
-      const headers = withSecurityHeaders({ 'Content-Type': contentType, 'Cache-Control': cacheControl }, req);
-      const acceptsGzip = /\bgzip\b/i.test(String(req.headers['accept-encoding'] || ''));
-      if (acceptsGzip && ['.html', '.css', '.js', '.json', '.svg', '.txt'].includes(ext)) {
-        headers['Content-Encoding'] = 'gzip';
-        headers['Vary'] = 'Accept-Encoding';
-        res.writeHead(200, headers);
-        fs.createReadStream(filePath).pipe(zlib.createGzip({ level: 6 })).pipe(res);
-      } else {
-        res.writeHead(200, headers);
-        fs.createReadStream(filePath).pipe(res);
-      }
+      res.writeHead(200, { 'Content-Type': MIME_TYPES[ext] || 'application/octet-stream' });
+      fs.createReadStream(filePath).pipe(res);
     });
   } catch (err) {
     console.error('Request handler error:', err);
