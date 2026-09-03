@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300&family=Playfair+Display:ital,wght@0,700;1,600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="templatemo-622-clearwave.css?v=step6" />
+  <link rel="stylesheet" href="templatemo-622-clearwave.css?v=step4" />
   <style>
     .uni-picker-bar {
       display: flex;
@@ -439,67 +439,7 @@ if (window.UNUniversity) window.UNUniversity.setUniversity(found || null);
       loadEvents(initialUni);
     })();
   </script>
-<style id="events-responsive-step6">
-/* Step 6 — Events page responsive layout: tuned for phones, tablets and wide screens. */
-.events-section .container,
-.filter-section .container { width: 100%; min-width: 0; }
-.events-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: stretch; }
-.event-card { min-width: 0; display: flex; flex-direction: column; height: 100%; }
-.event-card-body { min-width: 0; flex: 1; }
-.event-card-title,
-.event-card-desc,
-.event-card-uni { overflow-wrap: anywhere; word-break: break-word; }
-.event-card-footer { min-width: 0; gap: 12px; flex-wrap: wrap; }
-.event-card-footer-left { min-width: 0; }
-.event-card-footer .btn-buy,
-.event-card-footer .btn-notify { flex: 0 1 auto; max-width: 100%; }
-.filter-bar { min-width: 0; }
-.filter-search { min-width: 0; }
-.filter-group { min-width: 0; flex: 1 1 auto; }
-.filter-group select { min-width: 0; max-width: 100%; }
-.events-month-summary { min-width: 0; }
-.month-chip { max-width: 100%; overflow-wrap: anywhere; }
-
-@media (min-width: 1280px) {
-  .events-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
-}
-
-@media (max-width: 1100px) and (min-width: 769px) {
-  .events-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
-  .filter-bar { align-items: stretch; }
-  .filter-search { flex: 1 1 100%; width: 100%; }
-  .filter-group { flex: 1 1 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .filter-group select { width: 100%; }
-}
-
-@media (max-width: 768px) {
-  .events-section { padding: 56px 0; }
-  .events-grid { grid-template-columns: minmax(0, 1fr); gap: 18px; margin-top: 28px; }
-  .filter-section { padding: 16px 0; }
-  .filter-bar { padding: 12px; gap: 12px; }
-  .filter-search { width: 100%; flex: 1 1 100%; padding: 9px 12px; }
-  .filter-search input { min-width: 0; width: 100%; font-size: 0.9rem; }
-  .filter-group { width: 100%; flex: 1 1 100%; display: grid; grid-template-columns: 1fr; gap: 8px; }
-  .filter-group select { width: 100%; min-height: 42px; padding: 9px 12px; border-radius: 12px; }
-  .event-card-image { height: clamp(140px, 42vw, 190px); }
-  .event-card-body { padding: 18px 16px; }
-  .event-card-footer { padding: 12px 16px; align-items: stretch; }
-  .event-card-footer-left { flex: 1 1 100%; }
-  .event-card-footer .btn-buy,
-  .event-card-footer .btn-notify { width: 100%; text-align: center; justify-content: center; }
-}
-
-@media (max-width: 420px) {
-  .events-section { padding: 44px 0; }
-  .event-card-image { height: 132px; }
-  .event-card-body { padding: 14px; }
-  .event-card-title { font-size: 1rem; line-height: 1.35; }
-  .event-card-desc { font-size: 0.82rem; line-height: 1.5; }
-  .event-card-footer { padding: 10px 14px; }
-  .events-count { font-size: 0.82rem; }
-  .month-chip { font-size: 0.72rem; padding: 5px 10px; }
-}
-</style>
+  <script src="nav-mobile-fix.js?v=step5"></script>
 </body>
 </html>
 
