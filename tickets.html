@@ -357,7 +357,7 @@
 
           <div class="form-group" style="margin-top:16px;">
             <label for="qtySelect">Quantity (1 – 100 tickets)</label>
-            <input type="number" id="qtySelect" min="1" max="100" step="1" value="1" inputmode="numeric" />
+            <input type="number" id="qtySelect" min="1" max="100" step="1" value="1" inputmode="numeric" pattern="[0-9]{1,3}" />
             <p class="form-hint" style="font-size:0.82rem;color:var(--text-3);margin-top:6px;">Enter how many tickets you want — up to 100 per order.</p>
           </div>
         </div>
@@ -366,16 +366,16 @@
           <h3 class="checkout-card-title">👤 Buyer Information</h3>
           <div class="form-group">
             <label for="buyerName">Full Name</label>
-            <input type="text" id="buyerName" placeholder="e.g. Chidi Okonkwo" required />
+            <input type="text" id="buyerName" placeholder="e.g. Chidi Okonkwo" required autocomplete="name" pattern="[A-Za-z][A-Za-z .'-]{1,79}" maxlength="80" />
           </div>
           <div class="form-row">
             <div class="form-group">
               <label for="buyerEmail">Email Address</label>
-<input type="email" id="buyerEmail" placeholder="you@university.edu.ng" required />
+<input type="email" id="buyerEmail" placeholder="you@university.edu.ng" required autocomplete="email" maxlength="254" />
             </div>
             <div class="form-group">
               <label for="buyerPhone">Phone Number</label>
-              <input type="tel" id="buyerPhone" placeholder="0812 345 6789" required />
+              <input type="tel" id="buyerPhone" placeholder="0812 345 6789" required autocomplete="tel" inputmode="tel" pattern="[+0-9 ()-]{7,20}" maxlength="20" />
             </div>
           </div>
           <div class="form-group">

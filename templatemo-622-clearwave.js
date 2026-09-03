@@ -683,7 +683,18 @@ function getSelectedTier() {
     const name = buyerName ? buyerName.value.trim() : '';
     const email = buyerEmail ? buyerEmail.value.trim() : '';
     const phone = buyerPhone ? buyerPhone.value.trim() : '';
-    if (!name || !email || !phone) { alert('Please fill in your name, email, and phone number.'); return; }
+    const nameOk = /^[A-Za-z][A-Za-z .'-]{1,79}$/.test(name);
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    const phoneOk = /^[+0-9 ()-]{7,20}$/.test(phone) && /\d{7,}/.test(phone.replace(/\D/g, ''));
+    if (!nameOk || !emailOk || !phoneOk) {
+      if (buyerName) buyerName.setCustomValidity(nameOk ? '' : 'Enter a valid full name using letters and spaces.');
+      if (buyerEmail) buyerEmail.setCustomValidity(emailOk ? '' : 'Enter a valid email address.');
+      if (buyerPhone) buyerPhone.setCustomValidity(phoneOk ? '' : 'Enter a valid phone number.');
+      const invalid = [buyerName, buyerEmail, buyerPhone].find(function(field) { return field && !field.checkValidity(); });
+      if (invalid) invalid.reportValidity();
+      return;
+    }
+    [buyerName, buyerEmail, buyerPhone].forEach(function(field) { if (field) field.setCustomValidity(''); });
     const qty = getQty();
     if (qty < 1 || qty > 100) { alert('Please enter a quantity between 1 and 100 tickets.'); return; }
 

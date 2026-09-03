@@ -684,7 +684,8 @@
   .influencer-section-heading { display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:12px; }
   .influencer-section-heading strong { color:var(--text-1); font-size:.92rem; }
   .influencer-section-heading div div { color:var(--text-3); font-size:.76rem; margin-top:3px; }
-  .influencer-existing-panel { margin-top:14px; }
+  .influencer-header-search { position:relative; flex:0 0 auto; }
+  .influencer-header-search-panel { position:absolute; z-index:5; right:0; top:calc(100% + 8px); width:min(520px, 78vw); padding:12px; border:1px solid var(--border); border-radius:12px; background:var(--surface); box-shadow:var(--shadow-md, 0 12px 30px rgba(0,0,0,.12)); }
   .influencer-search-toolbar { display:flex; gap:8px; align-items:center; }
   .influencer-search-toolbar input { flex:1 1 auto; min-width:0; }
   .influencer-search-toolbar button { flex:0 0 auto; white-space:nowrap; }
@@ -720,6 +721,9 @@
     .admin-panel-heading h1 { font-size: 1.08rem; line-height: 1.3; }
     .admin-panel-heading p { font-size: .76rem; line-height: 1.45; }
     .admin-panel-heading > div { min-width: 0; flex: 1 1 auto; }
+    .influencer-header-search { width:100%; }
+    .influencer-header-search > button { width:100%; }
+    .influencer-header-search-panel { position:static; width:100%; margin-top:8px; }
 
     .admin-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 14px 0; }
     .admin-stat { padding: 12px; border-radius: 12px; }
@@ -944,6 +948,18 @@
       <h1>📣 My Influencers</h1>
       <p>Create and manage the influencers you created. They receive their own login and referral link, and their sales remain associated with your Influencer Admin account.</p>
     </div>
+    <div class="influencer-header-search">
+      <button class="admin-refresh-btn" type="button" id="toggleExistingInfluencerSearch" aria-expanded="false" aria-controls="existingInfluencerSearchPanel">🔎 Find influencer</button>
+      <div class="influencer-header-search-panel" id="existingInfluencerSearchPanel" hidden>
+        <label class="sr-only" for="existingInfluencerSearch">Search existing influencers</label>
+        <div class="influencer-search-toolbar">
+          <input id="existingInfluencerSearch" type="search" placeholder="Name or email" autocomplete="off" />
+          <button class="admin-refresh-btn" type="button" onclick="searchExistingInfluencers()">Search</button>
+          <button class="admin-refresh-btn influencer-search-clear" type="button" onclick="clearExistingInfluencerSearch()" aria-label="Clear influencer search">Clear</button>
+        </div>
+        <div id="existingInfluencerResults" class="influencer-search-results"></div>
+      </div>
+    </div>
   </div>
   <div class="admin-scan-panel">
     <div class="influencer-section-heading">
@@ -960,18 +976,6 @@
       <span style="font-size:0.75rem;color:var(--text-3);align-self:center;" id="influencerCount"></span>
     </div>
     <div class="admin-ticket-codes" id="influencersList" style="margin-top:14px;"></div>
-  </div>
-  <div class="admin-scan-panel influencer-existing-panel">
-    <div class="influencer-section-heading">
-      <div><strong>Work with an existing influencer</strong><div>Search by name or login email to send a connection request.</div></div>
-    </div>
-    <div class="influencer-search-toolbar">
-      <label class="sr-only" for="existingInfluencerSearch">Search existing influencers</label>
-      <input id="existingInfluencerSearch" type="search" placeholder="Name or email" autocomplete="off" />
-      <button class="admin-refresh-btn" type="button" onclick="searchExistingInfluencers()">🔎 Search</button>
-      <button class="admin-refresh-btn influencer-search-clear" type="button" onclick="clearExistingInfluencerSearch()" aria-label="Clear influencer search">Clear</button>
-    </div>
-    <div id="existingInfluencerResults" class="influencer-search-results"></div>
   </div>
 </div>
 
@@ -1897,6 +1901,14 @@ fetch('/api/admin/events/notify', {
       var existingInfluencerSearchInput = document.getElementById('existingInfluencerSearch');
       if (existingInfluencerSearchInput) existingInfluencerSearchInput.addEventListener('keydown', function(event) {
         if (event.key === 'Enter') { event.preventDefault(); searchExistingInfluencers(); }
+      });
+      var toggleExistingInfluencerSearch = document.getElementById('toggleExistingInfluencerSearch');
+      var existingInfluencerSearchPanel = document.getElementById('existingInfluencerSearchPanel');
+      if (toggleExistingInfluencerSearch && existingInfluencerSearchPanel) toggleExistingInfluencerSearch.addEventListener('click', function() {
+        var isOpen = !existingInfluencerSearchPanel.hidden;
+        existingInfluencerSearchPanel.hidden = isOpen;
+        toggleExistingInfluencerSearch.setAttribute('aria-expanded', String(!isOpen));
+        if (!isOpen && existingInfluencerSearchInput) existingInfluencerSearchInput.focus();
       });
 
       window.requestExistingInfluencer = function(influencerId) {
