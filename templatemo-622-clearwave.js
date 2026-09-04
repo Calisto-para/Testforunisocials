@@ -650,7 +650,10 @@ if (nav) {
     const email = buyerEmail ? buyerEmail.value.trim() : '';
     const phone = buyerPhone ? buyerPhone.value.trim() : '';
     const qty = getQty();
-    const canContinue = !!opt.value && name.length > 0 && email.length > 0 && phone.length > 0 && qty >= 1 && qty <= 100;
+    const nameOk = /^[A-Za-z][A-Za-z .'-]{1,79}$/.test(name);
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    const phoneOk = /^[+0-9 ()-]{7,20}$/.test(phone) && /\d{7,}/.test(phone.replace(/\D/g, ''));
+    const canContinue = !!opt.value && nameOk && emailOk && phoneOk && qty >= 1 && qty <= 100;
     if (continueBtn) continueBtn.disabled = !canContinue;
   }
 
@@ -786,7 +789,10 @@ const tier = getSelectedTier();
   if (eventSelect) eventSelect.addEventListener('change', updateEventDetails);
   if (qtySelect) {
     qtySelect.addEventListener('change', updateContinueBtn);
-    qtySelect.addEventListener('input', updateContinueBtn);
+    qtySelect.addEventListener('input', function() {
+      qtySelect.value = qtySelect.value.replace(/[^0-9]/g, '').slice(0, 3);
+      updateContinueBtn();
+    });
     // Keep the value clamped between 1 and 100 as the user types
     qtySelect.addEventListener('blur', function() {
       const q = getQty();
@@ -794,8 +800,16 @@ const tier = getSelectedTier();
       updateContinueBtn();
     });
   }
-  if (buyerName) buyerName.addEventListener('input', updateContinueBtn);
-  if (buyerEmail) buyerEmail.addEventListener('input', updateContinueBtn);
+  if (buyerName) buyerName.addEventListener('input', function() {
+    buyerName.value = buyerName.value.replace(/[^A-Za-z .'-]/g, '').slice(0, 80);
+    buyerName.setCustomValidity('');
+    updateContinueBtn();
+  });
+  if (buyerEmail) buyerEmail.addEventListener('input', function() {
+    buyerEmail.value = buyerEmail.value.replace(/[\s,;<>()[\]{}]/g, '').slice(0, 254);
+    buyerEmail.setCustomValidity('');
+    updateContinueBtn();
+  });
   if (buyerPhone) buyerPhone.addEventListener('input', updateContinueBtn);
 
   window.updateEventDetails = updateEventDetails;
