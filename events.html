@@ -325,6 +325,11 @@ function safeImg(value) {
       }
 
 function renderEvents(events) {
+  events = (events || []).slice().sort(function(a, b) {
+    var universityOrder = String(a.universityName || a.university || '').trim().localeCompare(String(b.universityName || b.university || '').trim(), undefined, { sensitivity: 'base' });
+    if (universityOrder) return universityOrder;
+    return String(a.name || '').localeCompare(String(b.name || ''), undefined, { sensitivity: 'base' });
+  });
         renderMonthSummary(events);
         if (!events || !events.length) {
           grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px 20px;"><span style="font-size:2.8rem;display:block;margin-bottom:12px;">\uD83C\uDF9F\uFE0F</span><p style="color:var(--text-3);">No events available for this campus yet. Check back soon!</p></div>';

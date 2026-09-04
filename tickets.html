@@ -587,6 +587,11 @@ function setSelectedTier(tier) {
           .then(function(r) { return r.json(); })
           .then(function(data) {
             var events = (data && data.success && data.events) || [];
+            events = events.slice().sort(function(a, b) {
+              var universityOrder = String(a.universityName || a.university || '').trim().localeCompare(String(b.universityName || b.university || '').trim(), undefined, { sensitivity: 'base' });
+              if (universityOrder) return universityOrder;
+              return String(a.name || '').localeCompare(String(b.name || ''), undefined, { sensitivity: 'base' });
+            });
             events.forEach(function(ev) {
               var opt = document.createElement('option');
               opt.value = ev.id || '';

@@ -684,10 +684,10 @@
   .influencer-section-heading { display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:12px; }
   .influencer-section-heading strong { color:var(--text-1); font-size:.92rem; }
   .influencer-section-heading div div { color:var(--text-3); font-size:.76rem; margin-top:3px; }
-  .influencer-header-search { position:relative; flex:0 0 280px; min-width:0; }
+  .influencer-header-search { position:relative; flex:0 1 360px; min-width:220px; }
   .influencer-header-search > button { width:100%; }
-  .influencer-header-search-panel { position:absolute; z-index:5; right:0; top:calc(100% + 8px); width:min(520px, 78vw); padding:12px; border:1px solid var(--border); border-radius:12px; background:var(--surface); box-shadow:var(--shadow-md, 0 12px 30px rgba(0,0,0,.12)); }
-  .influencer-search-toolbar { display:flex; gap:8px; align-items:center; }
+  .influencer-header-search-panel { position:absolute; z-index:5; right:0; top:calc(100% + 8px); width:min(640px, calc(100vw - 48px)); padding:12px; border:1px solid var(--border); border-radius:12px; background:var(--surface); box-shadow:var(--shadow-md, 0 12px 30px rgba(0,0,0,.12)); }
+  .influencer-search-toolbar { display:grid; grid-template-columns:minmax(0, 1fr) auto auto; gap:8px; align-items:center; }
   .influencer-search-toolbar input { flex:1 1 auto; min-width:0; }
   .influencer-search-toolbar button { flex:0 0 auto; white-space:nowrap; }
   .influencer-search-results:empty { display:none; }
@@ -763,9 +763,9 @@
     .admin-ticket-codes { overflow-x: auto; }
 
     .admin-toast { max-width: calc(100vw - 24px); padding: 10px 14px; border-radius: 12px; font-size: .78rem; }
-    .influencer-search-toolbar { align-items:stretch; flex-wrap:wrap; }
-    .influencer-search-toolbar input { flex:1 1 100%; }
-    .influencer-search-toolbar button { flex:1 1 0; }
+    .influencer-search-toolbar { grid-template-columns:minmax(0, 1fr) 1fr; align-items:stretch; }
+    .influencer-search-toolbar input { grid-column:1 / -1; }
+    .influencer-search-toolbar button { min-width:0; }
     .influencer-search-result-action { width:100%; }
     .influencer-search-result-action .admin-refresh-btn { width:100%; }
   }
