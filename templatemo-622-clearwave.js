@@ -74,13 +74,13 @@ const UNI_KEY = 'selected_university';
     } catch (e) {}
     // Notify any page (e.g. home featured events) to re-render for the new campus.
     if (typeof window.onUniversityChange === 'function') {
-      try { window.onUniversityChange(); } catch (e) {}
+      try { window.onUniversityChange(uni); } catch (e) {}
     }
   }
   function clearUniversity() {
     try { localStorage.removeItem(UNI_KEY); } catch (e) {}
     if (typeof window.onUniversityChange === 'function') {
-      try { window.onUniversityChange(); } catch (e) {}
+      try { window.onUniversityChange(null); } catch (e) {}
     }
   }
 
