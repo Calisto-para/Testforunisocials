@@ -3724,8 +3724,19 @@ codes[idx] = entry;
         }});
       }
       if (uniSlug) {
+        const universities = await readUniversities();
+        const selectedUniversity = universities.find(function(university) {
+          return [university.id, university.slug, university.name].some(function(value) {
+            return String(value || '').trim().toLowerCase() === uniSlug.toLowerCase();
+          });
+        });
+        const universityKeys = new Set([uniSlug, selectedUniversity && selectedUniversity.id, selectedUniversity && selectedUniversity.slug, selectedUniversity && selectedUniversity.name]
+          .map(function(value) { return String(value || '').trim().toLowerCase(); })
+          .filter(Boolean));
         const filtered = events.filter(function(e) {
-          return (e.universityId === uniSlug || e.universitySlug === uniSlug);
+          return [e.universityId, e.universitySlug, e.universityName].some(function(value) {
+            return universityKeys.has(String(value || '').trim().toLowerCase());
+          });
         }).map(enrich);
         return sendJson(res, 200, { success: true, events: filtered });
       }
